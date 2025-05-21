@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Virtual Doctor & Pharmacy</title>
+<style>
+  /* General styles */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9fafc;
+    color: #2c3e50;
+    line-height: 1.6;
+  }
+  header {
+    background: #2980b9;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  header h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+  nav a {
+    color: white;
+    margin-left: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1rem;
+    user-select: none;
+  }
+  nav a.active {
+    color: #f1c40f;
+    font-weight: 700;
+  }
+  main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  section {
+    background: white;
+    border-radius: 12px;
+    padding: 25px 30px;
+    margin-bottom: 3rem;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+  }
+  h2 {
+    margin-bottom: 1rem;
+    color: #34495e;
+    font-weight: 700;
+  }
+  p {
+    margin-bottom: 1.2rem;
+    font-size: 1.05rem;
+  }
+
+  /* Patient Details Form */
+  #patient-details-form {
+    max-width: 500px;
+    margin: 2rem auto 3rem auto;
+    padding: 30px 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    user-select: none;
+  }
+  #patient-details-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #34495e;
+  }
+  #patient-details-form input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    border: 1.8px solid #bdc3c7;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  #patient-details-form input:focus {
+    border-color: #2980b9;
+    outline: none;
+  }
+  #start-btn {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    font-size: 1.3rem;
+    border-radius: 12px;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    transition: background-color 0.3s ease;
+  }
+  #start-btn:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+  #start-btn:hover:not(:disabled) {
+    background-color: #1c5980;
+  }
+  #form-error {
+    color: #e74c3c;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  /* Updated Symptom Checker UI */
+  #question-container {
+    max-width: 600px;
+    margin: 2rem auto 1rem auto;
+    padding: 30px 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    text-align: center;
+    user-select: none;
+  }
+  #progress-bar {
+    height: 10px;
+    background: #dfe6e9;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #2980b9;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+  }
+  #question-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #34495e;
+  }
+  .option-button {
+    display: block;
+    background-color: #ecf0f1;
+    border: none;
+    padding: 16px 0;
+    margin: 12px auto;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 350px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #34495e;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .option-button:hover {
+    background-color: #d6eaf8;
+    color: #1c5980;
+  }
+  .option-button.selected {
+    background-color: #2980b9;
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(41, 128, 185, 0.4);
+  }
+  #next-btn {
+    margin-top: 30px;
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    font-size: 1.3rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #next-btn:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+  #next-btn:hover:not(:disabled) {
+    background-color: #1c5980;
+  }
+  /* Diagnosis */
+  #diagnosis {
+    font-size: 1.15rem;
+    background-color: #d4edda;
+    color: #155724;
+    padding: 20px 25px;
+    border-radius: 12px;
+    border: 1.5px solid #c3e6cb;
+    margin-top: 20px;
+    line-height: 1.4;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    white-space: pre-line;
+    user-select: none;
+  }
+  /* Pharmacy and Health Tips */
+  #pharmacy {
+    display: none;
+  }
+  #med-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .med-card {
+    flex: 1 1 45%;
+    background: #fdfdfd;
+    border: 1.5px solid #dcdcdc;
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.05);
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+    user-select: none;
+  }
+  .med-card:hover {
+    border-color: #2980b9;
+    box-shadow: 0 4px 15px rgb(0 0 0 / 0.1);
+  }
+  .med-card.selected {
+    border-color: #2980b9;
+    background-color: #d6eaf8;
+    font-weight: 700;
+  }
+  .med-name {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #34495e;
+  }
+  .med-desc {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 12px;
+  }
+  #order-btn {
+    margin-top: 20px;
+    background-color: #27ae60;
+    color: white;
+    padding: 16px 35px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+  }
+  #order-btn:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+  }
+  #order-btn:hover:not(:disabled) {
+    background-color: #1e8449;
+  }
+  #order-msg {
+    margin-top: 15px;
+    font-weight: 600;
+    color: #27ae60;
+  }
+  /* Health Tips Section */
+  #healthtips {
+    display: none;
+    text-align: center;
+  }
+  #health-tip {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    user-select: none;
+  }
+  #health-tip-btn {
+    background-color: #e67e22;
+    border: none;
+    color: white;
+    padding: 14px 40px;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  #health-tip-btn:hover {
+    background-color: #cf7118;
+  }
+  footer {
+    background: #2980b9;
+    color: white;
+    padding: 1rem 0;
+    text-align: center;
+    font-weight: 700;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Virtual Doctor & Pharmacy</h1>
+  <nav>
+    <a href="#" id="nav-checker" class="active">Symptom Checker</a>
+    <a href="#" id="nav-pharmacy">Pharmacy</a>
+    <a href="#" id="nav-healthtips">Health Tips</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Patient Details Form -->
+  <section id="patient-details-form">
+    <h2>Enter Your Details</h2>
+    <div id="form-error"></div>
+    <label for="patient-name">Full Name</label>
+    <input type="text" id="patient-name" placeholder="Your full name" autocomplete="off" required />
+    
+    <label for="patient-phone">Phone Number</label>
+    <input type="tel" id="patient-phone" placeholder="Digits only, e.g. 9876543210" maxlength="15" autocomplete="off" required />
+    
+    <label for="patient-location">Location</label>
+    <input type="text" id="patient-location" placeholder="Your city or area" autocomplete="off" required />
+    
+    <button id="start-btn" disabled>Start Symptom Checker</button>
+  </section>
+
+  <!-- Symptom Checker Section -->
+  <section id="symptom-checker-section" style="display:none;">
+    <div id="question-container">
+      <div id="progress-bar"><div id="progress-fill"></div></div>
+      <div id="question-text"></div>
+      <div id="options-container"></div>
+      <button id="next-btn" disabled>Next</button>
+      <div id="diagnosis" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- Pharmacy Section -->
+  <section id="pharmacy">
+    <h2>Pharmacy</h2>
+    <div id="med-list"></div>
+    <button id="order-btn" disabled>Order Selected Medicines</button>
+    <div id="order-msg"></div>
+  </section>
+
+  <!-- Health Tips Section -->
+  <section id="healthtips">
+    <h2>Health Tips</h2>
+    <div id="health-tip">Click the button below for a helpful health tip.</div>
+    <button id="health-tip-btn">Get Health Tip</button>
+  </section>
+</main>
+
+<footer>
+  Virtual Doctor & Pharmacy — Stay Healthy!
+</footer>
+
+<script>
+  // Navigation elements
+  const navChecker = document.getElementById('nav-checker');
+  const navPharmacy = document.getElementById('nav-pharmacy');
+  const navHealthTips = document.getElementById('nav-healthtips');
+
+  const sectionChecker = document.getElementById('symptom-checker-section');
+  const sectionPharmacy = document.getElementById('pharmacy');
+  const sectionHealthTips = document.getElementById('healthtips');
+
+  function setActiveNav(activeNav) {
+    [navChecker, navPharmacy, navHealthTips].forEach(nav => {
+      nav.classList.remove('active');
+    });
+    activeNav.classList.add('active');
+  }
+
+  navChecker.addEventListener('click', e => {
+    e.preventDefault();
+    setActiveNav(navChecker);
+    if (patientFormSubmitted) {
+      sectionChecker.style.display = 'block';
+    } else {
+      sectionChecker.style.display = 'none';
+    }
+    sectionPharmacy.style.display = 'none';
+    sectionHealthTips.style.display = 'none';
+  });
+  navPharmacy.addEventListener('click', e => {
+    e.preventDefault();
+    setActiveNav(navPharmacy);
+    sectionChecker.style.display = 'none';
+    sectionPharmacy.style.display = 'block';
+    sectionHealthTips.style.display = 'none';
+  });
+  navHealthTips.addEventListener('click', e => {
+    e.preventDefault();
+    setActiveNav(navHealthTips);
+    sectionChecker.style.display = 'none';
+    sectionPharmacy.style.display = 'none';
+    sectionHealthTips.style.display = 'block';
+  });
+
+  // Patient details form elements
+  const patientNameInput = document.getElementById('patient-name');
+  const patientPhoneInput = document.getElementById('patient-phone');
+  const patientLocationInput = document.getElementById('patient-location');
+  const startBtn = document.getElementById('start-btn');
+  const formErrorDiv = document.getElementById('form-error');
+  const patientDetailsForm = document.getElementById('patient-details-form');
+
+  let patientFormSubmitted = false;
+  let patientDetails = {};
+
+  // Enable Start button only when all fields are valid
+  function validateForm() {
+    const name = patientNameInput.value.trim();
+    const phone = patientPhoneInput.value.trim();
+    const location = patientLocationInput.value.trim();
+
+    // Simple phone validation (digits only and length at least 7)
+    const phoneValid = /^\d{7,15}$/.test(phone);
+    if (name && phoneValid && location) {
+      startBtn.disabled = false;
+      formErrorDiv.textContent = '';
+    } else {
+      startBtn.disabled = true;
+      if (phone && !phoneValid) {
+        formErrorDiv.textContent = 'Phone number must contain 7-15 digits only.';
+      } else {
+        formErrorDiv.textContent = '';
+      }
+    }
+  }
+
+  [patientNameInput, patientPhoneInput, patientLocationInput].forEach(input => {
+    input.addEventListener('input', validateForm);
+  });
+
+  startBtn.addEventListener('click', () => {
+    // Final validation
+    const name = patientNameInput.value.trim();
+    const phone = patientPhoneInput.value.trim();
+    const location = patientLocationInput.value.trim();
+
+    if (!name || !location) {
+      formErrorDiv.textContent = 'Please fill all fields.';
+      return;
+    }
+    if (!(/^\d{7,15}$/.test(phone))) {
+      formErrorDiv.textContent = 'Please enter a valid phone number (7-15 digits).';
+      return;
+    }
+
+    // Save details
+    patientDetails = { name, phone, location };
+    patientFormSubmitted = true;
+
+    // Hide form, show symptom checker
+    patientDetailsForm.style.display = 'none';
+    sectionChecker.style.display = 'block';
+    setActiveNav(navChecker);
+
+    // Reset and show first question
+    resetSymptomChecker();
+    showQuestion(0);
+  });
+
+  // Symptom checker data
+  const questions = [
+    { question: "Do you have a fever?", options: ["Yes", "No"], key: "fever" },
+    { question: "Are you experiencing a cough?", options: ["Yes", "No"], key: "cough" },
+    { question: "Do you have shortness of breath?", options: ["Yes", "No"], key: "breath" },
+    { question: "Are you feeling fatigue?", options: ["Yes", "No"], key: "fatigue" },
+    { question: "Do you have a sore throat?", options: ["Yes", "No"], key: "throat" }
+  ];
+
+  // Medicines and symptoms mapping
+  const medicines = [
+    { name: "Paracetamol", desc: "Used for fever and pain relief.", symptoms: ["fever", "fatigue"] },
+    { name: "Cough Syrup", desc: "Relieves cough symptoms.", symptoms: ["cough"] },
+    { name: "Bronchodilator", desc: "Helps ease breathing problems.", symptoms: ["breath"] },
+    { name: "Lozenges", desc: "Soothes sore throat.", symptoms: ["throat"] },
+    { name: "Vitamin C", desc: "Boosts immunity and energy.", symptoms: ["fatigue", "fever"] },
+    { name: "Antibiotic", desc: "For bacterial infections, use as prescribed.", symptoms: ["fever", "cough", "throat"] },
+    { name: "Pain Reliever", desc: "General pain relief.", symptoms: ["fatigue", "fever"] }
+  ];
+
+  // Health tips array
+  const healthTips = [
+    "Drink plenty of water every day.",
+    "Get at least 7-8 hours of sleep.",
+    "Wash your hands regularly with soap.",
+    "Eat fruits and vegetables rich in vitamins.",
+    "Exercise regularly for at least 30 minutes.",
+    "Avoid smoking and excessive alcohol consumption.",
+    "Practice mindfulness and reduce stress.",
+    "Maintain a balanced diet for overall health.",
+    "Stay up to date with your vaccinations.",
+    "Keep your living area clean and ventilated."
+  ];
+
+  // Elements for symptom checker
+  const questionText = document.getElementById('question-text');
+  const optionsContainer = document.getElementById('options-container');
+  const nextBtn = document.getElementById('next-btn');
+  const diagnosisDiv = document.getElementById('diagnosis');
+  const progressFill = document.getElementById('progress-fill');
+
+  let currentQuestionIndex = 0;
+  let answers = {};
+  let selectedOption = null;
+
+  function updateProgress() {
+    const percent = (currentQuestionIndex / questions.length) * 100;
+    progressFill.style.width = percent + '%';
+  }
+
+  function showQuestion(index) {
+    selectedOption = null;
+    nextBtn.disabled = true;
+    diagnosisDiv.style.display = 'none';
+    questionText.textContent = questions[index].question;
+
+    // Clear previous options
+    optionsContainer.innerHTML = '';
+
+    questions[index].options.forEach(option => {
+      const btn = document.createElement('button');
+      btn.className = 'option-button';
+      btn.textContent = option;
+      btn.type = 'button';
+
+      btn.addEventListener('click', () => {
+        // Clear previous selections
+        [...optionsContainer.children].forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedOption = option;
+        nextBtn.disabled = false;
+      });
+
+      optionsContainer.appendChild(btn);
+    });
+
+    updateProgress();
+  }
+
+  nextBtn.addEventListener('click', () => {
+    if (!selectedOption) return;
+
+    // Save answer
+    const key = questions[currentQuestionIndex].key;
+    answers[key] = selectedOption.toLowerCase() === "yes";
+
+    currentQuestionIndex++;
+    if (currentQuestionIndex < questions.length) {
+      showQuestion(currentQuestionIndex);
+    } else {
+      // Show diagnosis
+      showDiagnosis();
+    }
+  });
+
+  function showDiagnosis() {
+    nextBtn.style.display = 'none';
+    optionsContainer.style.display = 'none';
+    questionText.style.display = 'none';
+    progressFill.style.width = '100%';
+
+    // Simple diagnosis logic based on answers
+    let diagnosisText = `Hello ${patientDetails.name}, based on your symptoms:\n\n`;
+    let problemSymptoms = [];
+
+    for (const [symptom, present] of Object.entries(answers)) {
+      if (present) problemSymptoms.push(symptom);
+    }
+
+    if (problemSymptoms.length === 0) {
+      diagnosisText += "You don't seem to have any common symptoms right now. Stay healthy!";
+      diagnosisDiv.style.backgroundColor = "#d4edda";
+      diagnosisDiv.style.color = "#155724";
+    } else {
+      diagnosisText += "You reported: " + problemSymptoms.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(", ") + ".\n";
+      diagnosisText += "Recommended medicines are available below for your symptoms.";
+      diagnosisDiv.style.backgroundColor = "#fff3cd";
+      diagnosisDiv.style.color = "#856404";
+    }
+
+    diagnosisDiv.textContent = diagnosisText;
+    diagnosisDiv.style.display = 'block';
+
+    // Show pharmacy section with relevant medicines pre-selected
+    showPharmacy(problemSymptoms);
+
+    // Scroll to pharmacy automatically
+    setTimeout(() => {
+      navPharmacy.click();
+    }, 1000);
+  }
+
+  function resetSymptomChecker() {
+    currentQuestionIndex = 0;
+    answers = {};
+    selectedOption = null;
+
+    nextBtn.style.display = 'inline-block';
+    nextBtn.disabled = true;
+    optionsContainer.style.display = 'block';
+    questionText.style.display = 'block';
+
+    diagnosisDiv.style.display = 'none';
+    showQuestion(currentQuestionIndex);
+  }
+
+  // Pharmacy code
+  const medListDiv = document.getElementById('med-list');
+  const orderBtn = document.getElementById('order-btn');
+  const orderMsgDiv = document.getElementById('order-msg');
+
+  let selectedMeds = new Set();
+
+  function showPharmacy(symptomKeys = []) {
+    medListDiv.innerHTML = '';
+    orderMsgDiv.textContent = '';
+    selectedMeds.clear();
+    orderBtn.disabled = true;
+
+    // Show medicines matching symptoms, or all if no symptoms
+    const medsToShow = symptomKeys.length > 0 ? medicines.filter(med => med.symptoms.some(s => symptomKeys.includes(s))) : medicines;
+
+    medsToShow.forEach(med => {
+      const medCard = document.createElement('div');
+      medCard.className = 'med-card';
+      medCard.tabIndex = 0;
+
+      const medName = document.createElement('div');
+      medName.className = 'med-name';
+      medName.textContent = med.name;
+
+      const medDesc = document.createElement('div');
+      medDesc.className = 'med-desc';
+      medDesc.textContent = med.desc;
+
+      medCard.appendChild(medName);
+      medCard.appendChild(medDesc);
+
+      medCard.addEventListener('click', () => {
+        if (selectedMeds.has(med.name)) {
+          selectedMeds.delete(med.name);
+          medCard.classList.remove('selected');
+        } else {
+          selectedMeds.add(med.name);
+          medCard.classList.add('selected');
+        }
+        orderBtn.disabled = selectedMeds.size === 0;
+      });
+
+      medCard.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          medCard.click();
+        }
+      });
+
+      medListDiv.appendChild(medCard);
+    });
+  }
+
+  orderBtn.addEventListener('click', () => {
+    if (selectedMeds.size === 0) return;
+
+    // Simulate order action
+    orderMsgDiv.textContent = `Order placed successfully for: ${[...selectedMeds].join(', ')}. Our delivery will reach ${patientDetails.location} soon. Thank you, ${patientDetails.name}!`;
+    selectedMeds.clear();
+    orderBtn.disabled = true;
+
+    // Remove selection styles
+    [...medListDiv.children].forEach(card => card.classList.remove('selected'));
+  });
+
+  // Health tips
+  const healthTipDiv = document.getElementById('health-tip');
+  const healthTipBtn = document.getElementById('health-tip-btn');
+
+  healthTipBtn.addEventListener('click', () => {
+    const randomIndex = Math.floor(Math.random() * healthTips.length);
+    healthTipDiv.textContent = healthTips[randomIndex];
+  });
+
+  // On initial load, patient details form is shown, others hidden
+  sectionChecker.style.display = 'none';
+  sectionPharmacy.style.display = 'none';
+  sectionHealthTips.style.display = 'none';
+
+</script>
+
+</body>
+</html>
